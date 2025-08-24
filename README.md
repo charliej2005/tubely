@@ -1,3 +1,7 @@
+# Tubely
+
+Tubely is a mock-up Youtube backend I made as part of the Boot.dev course [Learn File Servers and CDNs with S3 and CloudFront](https://www.boot.dev/courses/learn-file-servers-s3-cloudfront-golang). It isn't intended for real use. It's just an exercise I used to familiarize myself with AWS and Cloudfront. This is forked from the provided starter repo, so I mainly worked on implementing AWS and CDN integration. Below is the description the original repo came with :).
+
 # learn-file-storage-s3-golang-starter (Tubely)
 
 This repo contains the starter code for the Tubely application - the #1 tool for engagement bait - for the "Learn File Servers and CDNs with S3 and CloudFront" [course](https://www.boot.dev/courses/learn-file-servers-s3-cloudfront-golang) on [boot.dev](https://www.boot.dev)
