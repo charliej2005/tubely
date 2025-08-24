@@ -138,7 +138,7 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	url := fmt.Sprintf("https://%v.s3.%v.amazonaws.com/%v", cfg.s3Bucket, cfg.s3Region, encoded)
+	url := fmt.Sprintf("https://%v/%v", cfg.s3CfDistribution, encoded)
 
 	video.VideoURL = &url
 	err = cfg.db.UpdateVideo(video)
