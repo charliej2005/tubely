@@ -83,6 +83,22 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	aspectRatio, err := getVideoAspectRatio(tempFile.Name())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Unable to retrieve aspect ratio", err)
+		return
+	}
+
+	var prefix string
+	switch aspectRatio {
+	case "16:9":
+		prefix = "landscape/"
+	case "9:16":
+		prefix = "portrait/"
+	case "other":
+		prefix = "other/"
+	}
+
 	tempFile.Seek(0, io.SeekStart)
 
 	random := make([]byte, 32)
@@ -91,7 +107,7 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 		respondWithError(w, http.StatusInternalServerError, "Error generating random bytes", err)
 		return
 	}
-	encoded := base64.RawURLEncoding.EncodeToString(random) + ".mp4"
+	encoded := prefix + base64.RawURLEncoding.EncodeToString(random) + ".mp4"
 
 	_, err = cfg.s3Client.PutObject(r.Context(), &s3.PutObjectInput{
 		Bucket:      &cfg.s3Bucket,

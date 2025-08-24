@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"math"
 	"net/http"
+	"os/exec"
 
 	"github.com/bootdotdev/learn-file-storage-s3-golang-starter/internal/auth"
 	"github.com/bootdotdev/learn-file-storage-s3-golang-starter/internal/database"
@@ -117,4 +121,65 @@ func (cfg *apiConfig) handlerVideosRetrieve(w http.ResponseWriter, r *http.Reque
 	}
 
 	respondWithJSON(w, http.StatusOK, videos)
+}
+
+func getVideoAspectRatio(filePath string) (string, error) {
+	type videoProbe struct {
+		Streams []struct {
+			Width  int `json:"width"`
+			Height int `json:"height"`
+		} `json:"streams"`
+	}
+
+	cmd := exec.Command("ffprobe", "-v", "error", "-print_format", "json", "-show_streams", filePath)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		return "", err
+	}
+
+	var probe videoProbe
+	json.Unmarshal(out.Bytes(), &probe)
+
+	if len(probe.Streams) == 0 {
+		return "other", fmt.Errorf("no streams found in video file")
+	}
+	width := probe.Streams[0].Width
+	height := probe.Streams[0].Height
+
+	aspectRatio := aspectRatioString(width, height)
+
+	switch aspectRatio {
+	case "16:9":
+		return aspectRatio, nil
+	case "9:16":
+		return aspectRatio, nil
+	default:
+		return "other", nil
+	}
+}
+
+func aspectRatioString(width, height int) string {
+	if height == 0 {
+		return "unknown"
+	}
+	ratio := float64(width) / float64(height)
+
+	const tolerance = 0.02
+	if math.Abs(ratio-(16.0/9.0)) < tolerance {
+		return "16:9"
+	}
+	if math.Abs(ratio-(9.0/16.0)) < tolerance {
+		return "9:16"
+	}
+
+	gcd := func(a, b int) int {
+		for b != 0 {
+			a, b = b, a%b
+		}
+		return a
+	}
+	d := gcd(width, height)
+	return fmt.Sprintf("%d:%d", width/d, height/d)
 }
